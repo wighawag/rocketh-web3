@@ -1,9 +1,8 @@
-const rocketh = require('rocketh');
 
-function setup(Web3Provider) {
+function setup(rocketh, Web3Provided) {
     let web3;
-    if(Web3Provider) {
-        web3 = new Web3Provider(rocketh.ethereum);
+    if(Web3Provided) {
+        web3 = new Web3Provided(rocketh.ethereum);
     } else {
         const Web3 = require('web3');
         web3 = new Web3(rocketh.ethereum);
@@ -24,6 +23,15 @@ function setup(Web3Provider) {
         return contract;
     };
 
+    const deployOrGetExistingContract = async (name, contractName, options, ...args) => {
+        let contract = await deployContractIfNew(name, contractName, options, ...args);
+        if(!contract) {
+            const deployment = rocketh.deployment(name);
+            contract = new web3.eth.Contract(deployment.contractInfo.abi, deployment.address);
+        }
+        return contract;
+    }
+
     function getDeployedContract(name) {
         const deployment = rocketh.deployment(name);
         return new web3.eth.Contract(deployment.contractInfo.abi, deployment.address);
@@ -32,6 +40,7 @@ function setup(Web3Provider) {
     return {
         deployContractIfNew,
         getDeployedContract,
+        deployOrGetExistingContract,
         web3
     };
 }
