@@ -1,0 +1,10 @@
+{
+  "name": "rocketh-web3",
+  "version": "0.1.0",
+  "main": "index.js",
+  "license": "MIT",
+  "peerDependencies": {
+    "web3": "^1.0.0-beta.34",
+    "rocketh": "^0.2.8"
+  }
+}
