@@ -78,6 +78,7 @@ function setup(rocketh, Web3Provided) {
     return {
         deployIfDifferent,
         getDeployedContract,
+        deploy,
         web3
     };
 }
