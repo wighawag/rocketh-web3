@@ -17,7 +17,7 @@ function setup(rocketh, Web3Provided) {
             transactionHash = txHash;
         });
         const contract = await promiEvent;
-        registerDeployment(name, { 
+        rocketh.registerDeployment(name, { 
             contractInfo: ContractInfo, 
             address: contract.options.address,
             transactionHash,
