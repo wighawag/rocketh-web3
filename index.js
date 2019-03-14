@@ -1,12 +1,12 @@
 
-function setup(rocketh, Web3Provided) {
-    let web3;
-    if(Web3Provided) {
-        web3 = new Web3Provided(rocketh.ethereum);
-    } else {
-        const Web3 = require('web3');
-        web3 = new Web3(rocketh.ethereum);
+function setup(rocketh, Web3) {
+    if(!rocketh) {
+        throw new Error("rocketh-web3 expect to be passed rocketh module as first argument");
     }
+    if(!Web3) {
+        throw new Error("rocketh-web3 expect to be passed Web3 module as second argument");
+    }
+    const web3 = new Web3(rocketh.ethereum);
 
     const deploy = async(name, contractName, options, ...args) => {
         const ContractInfo = rocketh.contractInfo(contractName);
