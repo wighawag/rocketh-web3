@@ -133,7 +133,7 @@ function setup(rocketh, Web3) {
         instantiateAndRegisterContract,
         deploy,
         web3,
-        tx
+        tx,
     };
 }
 
