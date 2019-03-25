@@ -116,6 +116,14 @@ function setup(rocketh, Web3) {
         return instantiateContract(ContractInfo.abi, address)
     }
 
+    function tx(options, contract, methodName, ...args) {
+        if(contract) {
+            return contract.methods[methodName](...args).send(options);
+        } else {
+            return web3.eth.sendTransaction(options);
+        }
+    }
+
     return {
         fetchIfDifferent,
         deployIfDifferent,
@@ -124,7 +132,8 @@ function setup(rocketh, Web3) {
         instantiateContract,
         instantiateAndRegisterContract,
         deploy,
-        web3
+        web3,
+        tx
     };
 }
 
