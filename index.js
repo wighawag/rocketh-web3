@@ -124,6 +124,10 @@ function setup(rocketh, Web3) {
         }
     }
 
+    function fetchReceipt(txHash) {
+        return web3.eth.getTransactionReceipt(txHash);
+    }
+
     return {
         fetchIfDifferent,
         deployIfDifferent,
@@ -134,6 +138,7 @@ function setup(rocketh, Web3) {
         deploy,
         web3,
         tx,
+        fetchReceipt,
     };
 }
 
