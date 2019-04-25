@@ -124,6 +124,22 @@ function setup(rocketh, Web3) {
         }
     }
 
+    function call(options, contract, methodName, ...args) {
+        if(typeof args == "undefined") {
+            args = [];
+        }
+        if(typeof contract == "string") {
+            args = args.concat([]);
+            if(typeof methodName != "undefined") {
+                args.unshift(methodName);
+            }
+            methodName = contract;
+            contract = options;
+            options = {};
+        }
+        return contract.methods[methodName](...args).call(options);
+    }
+
     function fetchReceipt(txHash) {
         return web3.eth.getTransactionReceipt(txHash);
     }
@@ -139,6 +155,7 @@ function setup(rocketh, Web3) {
         web3,
         tx,
         fetchReceipt,
+        call,
     };
 }
 
