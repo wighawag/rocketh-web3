@@ -11,19 +11,39 @@ function setup(rocketh, Web3) {
     const deploy = async(name, options, contractName, ...args) => {
         const ContractInfo = rocketh.contractInfo(contractName);
         const Contract = new web3.eth.Contract(ContractInfo.abi);
-        const promiEvent = Contract.deploy({data:'0x' + ContractInfo.evm.bytecode.object, arguments: args}).send(options);
+        
+        let contract;
         let transactionHash;
-        promiEvent.once('transactionHash', (txHash) => {
-            transactionHash = txHash;
-        });
-        const contract = await promiEvent;
+        if(options.from.length > 42) {
+            const deployData = Contract.deploy({data:'0x' + ContractInfo.evm.bytecode.object, arguments: args}).encodeABI();
+            const txOptions = {
+                from: options.from,
+                data: deployData,
+                gas: options.gas,
+                gasPrice: options.gasPrice,
+                value: options.value,
+                nonce: options.nonce
+            };
+            const receipt = await tx(txOptions);
+            contract = new web3.eth.Contract(ContractInfo.abi, receipt.contractAddress);
+            transactionHash = receipt.transactionHash;
+        } else {
+            const promiEvent = Contract.deploy({data:'0x' + ContractInfo.evm.bytecode.object, arguments: args}).send(options);
+            promiEvent.once('transactionHash', (txHash) => {
+                transactionHash = txHash;
+            });
+            contract = await promiEvent;
+        }
+
+        
         rocketh.registerDeployment(name, { 
             contractInfo: ContractInfo, 
             address: contract.options.address,
             transactionHash,
             args
         });
-        return {contract, transactionHash};
+        const receipt = await fetchReceipt(transactionHash);
+        return {contract, transactionHash, receipt};
     }
 
     const deployIfNeverDeployed = async (name, options, contractName, ...args) => {
@@ -116,11 +136,37 @@ function setup(rocketh, Web3) {
         return instantiateContract(ContractInfo.abi, address)
     }
 
-    function tx(options, contract, methodName, ...args) {
-        if(contract) {
-            return contract.methods[methodName](...args).send(options);
+    async function tx(options, contract, methodName, ...args) {
+        if(options.from.length > 42) {
+            const privateKey = options.from;
+            const from = web3.eth.accounts.privateKeyToAccount(privateKey).address;
+            const nonce = web3.utils.toHex(options.nonce || await web3.eth.getTransactionCount(from));
+            const gas = web3.utils.toHex(options.gas);
+            const value = options.value || "0x0";
+            const gasPrice = options.gasPrice || await web3.eth.getGasPrice();
+            let data = options.data;
+            let to = options.to;
+            if(contract) {
+                to = contract.options.address;
+                data = contract.methods[methodName](...args).encodeABI();
+            }
+            const txOptions = {
+                from,
+                nonce,
+                gas,
+                value,
+                gasPrice,
+                data,
+                to
+            };
+            const signedTx = await web3.eth.accounts.signTransaction(txOptions, privateKey);
+            return web3.eth.sendSignedTransaction(signedTx.rawTransaction);                    
         } else {
-            return web3.eth.sendTransaction(options);
+            if(contract) {
+                return contract.methods[methodName](...args).send(options);
+            } else {
+                return web3.eth.sendTransaction(options);
+            }
         }
     }
 
