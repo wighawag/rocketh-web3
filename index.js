@@ -202,6 +202,8 @@ function setup(rocketh, Web3) {
         tx,
         fetchReceipt,
         call,
+        getTransactionCount: (from) => web3.eth.getTransactionCount(from),
+        getBalance: (from) => web3.eth.getBalance(from),
     };
 }
 
