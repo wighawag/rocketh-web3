@@ -10,6 +10,13 @@ function setup(rocketh, Web3) {
     const web3 = new Web3(rocketh.ethereum);
 
     const deploy = async(name, options, contractName, ...args) => {
+        let register = true;
+        if(typeof name != 'string') {
+            register = false;
+            args.unshift(contractName);
+            contractName = options;
+            options = name;
+        }
         const ContractInfo = rocketh.contractInfo(contractName);
         const Contract = new web3.eth.Contract(ContractInfo.abi);
         
@@ -37,12 +44,15 @@ function setup(rocketh, Web3) {
         }
 
         
-        rocketh.registerDeployment(name, { 
-            contractInfo: ContractInfo, 
-            address: contract.options.address,
-            transactionHash,
-            args
-        });
+        if(register) {
+            rocketh.registerDeployment(name, { 
+                contractInfo: ContractInfo, 
+                address: contract.options.address,
+                transactionHash,
+                args
+            });
+        }
+
         const receipt = await fetchReceipt(transactionHash);
         return {contract, transactionHash, receipt}; // TODO address
     }
