@@ -1,3 +1,4 @@
+const assert = require('assert');
 
 function setup(rocketh, Web3) {
     if(!rocketh) {
@@ -43,7 +44,7 @@ function setup(rocketh, Web3) {
             args
         });
         const receipt = await fetchReceipt(transactionHash);
-        return {contract, transactionHash, receipt};
+        return {contract, transactionHash, receipt}; // TODO address
     }
 
     const deployIfNeverDeployed = async (name, options, contractName, ...args) => {
@@ -190,6 +191,35 @@ function setup(rocketh, Web3) {
         return web3.eth.getTransactionReceipt(txHash);
     }
 
+    // from https://github.com/OpenZeppelin/zeppelin-solidity/blob/master/test/helpers/expectThrow.js
+    // Changing to use the invalid opcode error instead works
+    async function expectThrow (promise) {
+        let receipt;
+        try {
+        receipt = await promise;
+        } catch (error) {
+        // TODO: Check jump destination to destinguish between a throw
+        //       and an actual invalid jump.
+        const invalidOpcode = error.message.search('invalid opcode') >= 0;
+        // TODO: When we contract A calls contract B, and B throws, instead
+        //       of an 'invalid jump', we get an 'out of gas' error. How do
+        //       we distinguish this from an actual out of gas event? (The
+        //       ganache log actually show an 'invalid jump' event.)
+        const outOfGas = error.message.search('out of gas') >= 0;
+        const revert = error.message.search('revert') >= 0;
+        const status0x0 = error.message.search('status": "0x0"') >= 0 ||  error.message.search('status":"0x0"') >= 0; // TODO better
+        assert(
+            invalidOpcode || outOfGas || revert || status0x0,
+            'Expected throw, got \'' + error + '\' instead',
+        );
+        return;
+        }
+        if(receipt.status == "0x0") {
+        return;
+        }
+        assert.fail('Expected throw not received');
+    }
+
     return {
         fetchIfDifferent,
         deployIfDifferent,
@@ -202,6 +232,7 @@ function setup(rocketh, Web3) {
         tx,
         fetchReceipt,
         call,
+        expectThrow,
         getTransactionCount: (from) => web3.eth.getTransactionCount(from),
         getBalance: (from) => web3.eth.getBalance(from),
     };
