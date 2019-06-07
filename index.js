@@ -121,7 +121,8 @@ function setup(rocketh, Web3) {
         if(!deployment) {
             return null;
         }
-        return {contract: instantiateContract(deployment.contractInfo.abi, deployment.address), transactionHash: deployment.transactionHash };
+        const receipt = await fetchReceipt(deployment.transactionHash);
+        return {contract: instantiateContract(deployment.contractInfo.abi, deployment.address), transactionHash: deployment.transactionHash, receipt};
     }
 
     function getDeployedContract(name) {
@@ -179,6 +180,22 @@ function setup(rocketh, Web3) {
                 return web3.eth.sendTransaction(options);
             }
         }
+    }
+
+    function estimateGas(options, contract, methodName, ...args) {
+        if(typeof args == "undefined") {
+            args = [];
+        }
+        if(typeof contract == "string") {
+            args = args.concat([]);
+            if(typeof methodName != "undefined") {
+                args.unshift(methodName);
+            }
+            methodName = contract;
+            contract = options;
+            options = {};
+        }
+        return contract.methods[methodName](...args).estimateGas(options);
     }
 
     function call(options, contract, methodName, ...args) {
@@ -243,6 +260,7 @@ function setup(rocketh, Web3) {
         fetchReceipt,
         call,
         expectThrow,
+        estimate,
         getTransactionCount: (from) => web3.eth.getTransactionCount(from),
         getBalance: (from) => web3.eth.getBalance(from),
     };
