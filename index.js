@@ -260,7 +260,7 @@ function setup(rocketh, Web3) {
         fetchReceipt,
         call,
         expectThrow,
-        estimate,
+        estimateGas,
         getTransactionCount: (from) => web3.eth.getTransactionCount(from),
         getBalance: (from) => web3.eth.getBalance(from),
     };
