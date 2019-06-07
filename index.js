@@ -116,7 +116,7 @@ function setup(rocketh, Web3) {
         
     };
 
-    function getDeployedContractWithTransactionHash(name) {
+    async function getDeployedContractWithTransactionHash(name) {
         const deployment = rocketh.deployment(name);
         if(!deployment) {
             return null;
