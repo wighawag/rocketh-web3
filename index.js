@@ -68,7 +68,7 @@ function setup(rocketh, Web3) {
                 address: contract.options.address,
                 transactionHash,
                 args
-            }, true);
+            });
         }
 
         return {contract, transactionHash, receipt, newlyDeployed: true}; // TODO address
@@ -126,7 +126,6 @@ function setup(rocketh, Web3) {
     const deployIfDifferent = async (fieldsToCompare, name, options, contractName, ...args) => {
         const differences = await fetchIfDifferent(fieldsToCompare, name, options, contractName, ...args);
         if(differences) {
-            console.log('differences ');
             return deploy(name, options, contractName, ...args);
         } else {
             return getDeployedContractWithTransactionHash(name);
