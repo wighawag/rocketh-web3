@@ -22,6 +22,7 @@ function setup(rocketh, Web3) {
         
         let contract;
         let transactionHash;
+        let receipt;
         if(options.from.length > 42) {
             const deployData = Contract.deploy({data:'0x' + ContractInfo.evm.bytecode.object, arguments: args}).encodeABI();
             const txOptions = {
@@ -32,28 +33,46 @@ function setup(rocketh, Web3) {
                 value: options.value,
                 nonce: options.nonce
             };
-            const receipt = await tx(txOptions);
+            const promiEvent = tx(txOptions);
+            promiEvent.once('transactionHash', (txHash) => {
+                transactionHash = txHash;
+                if(register) {
+                    rocketh.registerDeployment(name, { 
+                        contractInfo: ContractInfo, 
+                        transactionHash,
+                        args
+                    });
+                }
+            });
+            receipt = await promiEvent;
             contract = new web3.eth.Contract(ContractInfo.abi, receipt.contractAddress);
-            transactionHash = receipt.transactionHash;
         } else {
             const promiEvent = Contract.deploy({data:'0x' + ContractInfo.evm.bytecode.object, arguments: args}).send(options);
             promiEvent.once('transactionHash', (txHash) => {
                 transactionHash = txHash;
+                if(register) {
+                    rocketh.registerDeployment(name, { 
+                        contractInfo: ContractInfo, 
+                        transactionHash,
+                        args
+                    });
+                }
             });
             contract = await promiEvent;
+            receipt = await fetchReceipt(transactionHash);
         }
 
-        
         if(register) {
             rocketh.registerDeployment(name, { 
                 contractInfo: ContractInfo, 
                 address: contract.options.address,
                 transactionHash,
                 args
-            });
+            }, true);
+
+            console.log('CONTRACT ' + name + ' deployed at ' + contract.options.address);
         }
 
-        const receipt = await fetchReceipt(transactionHash);
         return {contract, transactionHash, receipt, newlyDeployed: true}; // TODO address
     }
 
@@ -109,6 +128,7 @@ function setup(rocketh, Web3) {
     const deployIfDifferent = async (fieldsToCompare, name, options, contractName, ...args) => {
         const differences = await fetchIfDifferent(fieldsToCompare, name, options, contractName, ...args);
         if(differences) {
+            console.log('differences ');
             return deploy(name, options, contractName, ...args);
         } else {
             return getDeployedContractWithTransactionHash(name);
