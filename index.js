@@ -69,8 +69,6 @@ function setup(rocketh, Web3) {
                 transactionHash,
                 args
             }, true);
-
-            console.log('CONTRACT ' + name + ' deployed at ' + contract.options.address);
         }
 
         return {contract, transactionHash, receipt, newlyDeployed: true}; // TODO address
