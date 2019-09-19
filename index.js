@@ -54,7 +54,7 @@ function setup(rocketh, Web3) {
         }
 
         const receipt = await fetchReceipt(transactionHash);
-        return {contract, transactionHash, receipt}; // TODO address
+        return {contract, transactionHash, receipt, newlyDeployed: true}; // TODO address
     }
 
     const deployIfNeverDeployed = async (name, options, contractName, ...args) => {
@@ -122,7 +122,7 @@ function setup(rocketh, Web3) {
             return null;
         }
         const receipt = await fetchReceipt(deployment.transactionHash);
-        return {contract: instantiateContract(deployment.contractInfo.abi, deployment.address), transactionHash: deployment.transactionHash, receipt};
+        return {contract: instantiateContract(deployment.contractInfo ? deployment.contractInfo.abi : [], deployment.address), transactionHash: deployment.transactionHash, receipt};
     }
 
     function getDeployedContract(name) {
@@ -130,7 +130,7 @@ function setup(rocketh, Web3) {
         if(!deployment) {
             return null;
         }
-        return instantiateContract(deployment.contractInfo.abi, deployment.address);
+        return instantiateContract(deployment.contractInfo ? deployment.contractInfo.abi : [], deployment.address);
     }
 
     function instantiateContract(abi, address) {
