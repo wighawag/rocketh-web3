@@ -166,6 +166,7 @@ function setup(rocketh, Web3) {
     }
 
     async function tx(options, contract, methodName, ...args) {
+        let receipt;
         if(options.from.length > 42) {
             const privateKey = options.from;
             const from = web3.eth.accounts.privateKeyToAccount(privateKey).address;
@@ -189,14 +190,18 @@ function setup(rocketh, Web3) {
                 to
             };
             const signedTx = await web3.eth.accounts.signTransaction(txOptions, privateKey);
-            return web3.eth.sendSignedTransaction(signedTx.rawTransaction);                    
+            receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);                    
         } else {
             if(contract) {
-                return contract.methods[methodName](...args).send(options);
+                receipt = await contract.methods[methodName](...args).send(options);
             } else {
-                return web3.eth.sendTransaction(options);
+                receipt = await web3.eth.sendTransaction(options);
             }
         }
+        if(receipt && receipt.status == '0x0') { // TODO fix that requirement
+            throw new Error(JSON.stringify(receipt, null, '  '));
+        }
+        return receipt;
     }
 
     function estimateGas(options, contract, methodName, ...args) {
