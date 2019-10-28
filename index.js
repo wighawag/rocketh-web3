@@ -184,6 +184,7 @@ function setup(rocketh, Web3) {
             }, null, '  '));
             throw new Error('ABORT, ACTION REQUIRED, see above');
         }
+        return tx(options, contract, methodName, ...args);
     }
 
     async function tx(options, contract, methodName, ...args) {
