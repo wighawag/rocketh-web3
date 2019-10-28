@@ -165,6 +165,27 @@ function setup(rocketh, Web3) {
         return instantiateContract(ContractInfo.abi, address)
     }
 
+    async function txOnlyFrom(from, options, contract, methodName, ...args) {
+        if (from.toLowerCase() !== options.from.toLowerCase()) {
+            const data = contract.methods[methodName](...args).encodeABI();
+            const to = contract.options.address;
+            console.log(options.from + ' has no right to ' + methodName);
+
+            console.log('Please execute the following as ' + from);
+            console.log(JSON.stringify({
+                to,
+                data,
+            }, null, '  '));
+            console.log('if you have an interface use the following');
+            console.log(JSON.stringify({
+                to,
+                method: methodName,
+                args,
+            }, null, '  '));
+            throw new Error('ABORT, ACTION REQUIRED, see above');
+        }
+    }
+
     async function tx(options, contract, methodName, ...args) {
         let receipt;
         if(options.from.length > 42) {
@@ -279,6 +300,7 @@ function setup(rocketh, Web3) {
         deploy,
         web3,
         tx,
+        txOnlyFrom,
         fetchReceipt,
         call,
         expectThrow,
