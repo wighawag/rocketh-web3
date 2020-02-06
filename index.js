@@ -182,6 +182,9 @@ function setup(rocketh, Web3) {
                 method: methodName,
                 args,
             }, null, '  '));
+            if (options.skipError) {
+                return null;
+            }
             throw new Error('ABORT, ACTION REQUIRED, see above');
         }
         return tx(options, contract, methodName, ...args);
